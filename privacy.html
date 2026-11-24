@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Switcher Privacy Policy</title>
+<meta name="description" content="What Switcher, the window switcher for macOS, does and doesn't do with your data.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+:root {
+  --bg: #ffffff; --bg-alt: #f5f5f7; --text: #1d1d1f; --muted: #6e6e73; --hairline: rgba(0, 0, 0, 0.1);
+  --link: #0066cc; --blue: #0071e3; --nav-bg: rgba(255, 255, 255, 0.72); --tile: #f5f5f7;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #000000; --bg-alt: #101012; --text: #f5f5f7; --muted: #a1a1a6; --hairline: rgba(255, 255, 255, 0.14);
+          --link: #2997ff; --nav-bg: rgba(22, 22, 23, 0.72); --tile: #1d1d1f; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 17px; line-height: 1.53;
+       letter-spacing: -0.016em; -webkit-font-smoothing: antialiased; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.nav { position: sticky; top: 0; z-index: 10; background: var(--nav-bg); backdrop-filter: saturate(180%) blur(20px);
+       -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--hairline); }
+.nav .wrap { display: flex; align-items: center; height: 52px; gap: 24px; }
+.brand { display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: 600; font-size: 19px; }
+.brand:hover { text-decoration: none; }
+.brand img { width: 26px; height: 26px; }
+.nav .back { margin-left: auto; font-size: 13px; }
+.wrap { width: min(760px, 100% - 44px); margin: 0 auto; }
+header { padding: 72px 0 24px; }
+h1 { font-size: clamp(40px, 7vw, 56px); line-height: 1.07; letter-spacing: -0.02em; margin: 0; }
+.date { color: var(--muted); margin-top: 12px; }
+.summary { background: var(--tile); border-radius: 18px; padding: 24px 28px; margin: 24px 0 8px; font-size: 19px; line-height: 1.45; }
+.summary p { margin: 0; }
+h2 { font-size: 26px; letter-spacing: -0.012em; margin: 48px 0 10px; }
+h3 { font-size: 19px; margin: 24px 0 6px; }
+p, li { color: var(--text); }
+ul { padding-left: 22px; }
+li { margin: 6px 0; }
+.muted { color: var(--muted); }
+code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.9em; }
+footer { margin-top: 72px; background: var(--bg-alt); color: var(--muted); font-size: 12px; padding: 22px 0 36px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="images/icon.png" alt="">Switcher</a>
+    <a class="back" href="./">Back to Switcher</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header>
+    <h1>Privacy Policy</h1>
+    <p class="date">Effective November 25, 2026</p>
+  </header>
+
+  <div class="summary">
+    <p>Switcher doesn't collect data about how you use your Mac. Nothing about your windows ever leaves your Mac. The only thing it sends over the internet is what's needed to check your license.</p>
+  </div>
+
+  <p>Switcher is a window switcher and window snapper for macOS made by Alejandro Alcocer (“we”, “us”). This policy covers the Switcher app and this website.</p>
+
+  <h2>What stays on your Mac</h2>
+  <ul>
+    <li><b>Windows.</b> To show the switcher, Switcher reads the titles, positions and apps of your open windows, and, if you allow Screen Recording, takes small pictures of their contents. Thumbnails are kept in memory while Switcher runs. None of this is saved to disk or sent anywhere.</li>
+    <li><b>Keyboard.</b> Switcher watches for its own shortcuts (like ⌥Tab and ⌃⌥ with the arrow keys) and the keys you press while the switcher is open. It doesn't record or keep anything you type.</li>
+    <li><b>Settings</b> are stored in Switcher's preferences on your Mac.</li>
+    <li><b>Your trial start date and license key</b> are stored in your Mac's Keychain.</li>
+  </ul>
+
+  <h2>What Switcher sends, and to whom</h2>
+  <h3>License checks: Lemon Squeezy</h3>
+  <p>When you activate a license, and about once a day after that, Switcher sends your license key, an activation ID and your Mac's model identifier (for example “Mac14,2”, never your computer's name) to the license service of Lemon Squeezy, our payment provider. Lemon Squeezy answers whether the license is active and with the email address on the subscription, which Switcher shows in Settings → License.</p>
+  <h3>Store settings: GitHub</h3>
+  <p>About once a day, Switcher downloads a small settings file (<code>license.json</code>, with the checkout link and price) from this website, which is hosted by GitHub.</p>
+  <h3>Nothing else</h3>
+  <p>No analytics, crash reports, advertising or tracking, and we never sell or share data about you. Like any internet request, the requests above reveal your IP address to Lemon Squeezy and GitHub, who handle it under their own privacy policies. Links in the app (Subscribe, Manage Subscription, this website) open in your web browser.</p>
+
+  <h2>Purchases</h2>
+  <p>Lemon Squeezy is the merchant of record for Switcher: it runs the checkout, takes payment, handles sales tax and sends receipts, under the <a href="https://www.lemonsqueezy.com/privacy">Lemon Squeezy privacy policy</a>. We receive what we need to provide and support your subscription: your name, email address, billing country and order and subscription details. We never receive your full card details.</p>
+
+  <h2>This website</h2>
+  <p>This site is a set of static pages hosted on GitHub Pages, with downloads from GitHub Releases. It uses no cookies, analytics or trackers. GitHub may collect technical information such as IP addresses, as described in the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.</p>
+
+  <h2>Permissions</h2>
+  <ul>
+    <li><b>Accessibility</b> (required) lets Switcher see your windows, catch its shortcuts and move windows when you snap them.</li>
+    <li><b>Screen Recording</b> (optional) is used only for window thumbnails.</li>
+  </ul>
+  <p>You can turn either off anytime in System Settings → Privacy &amp; Security.</p>
+
+  <h2>Opening at login</h2>
+  <p>Switcher only opens when you log in if you choose that, on first launch or later in Settings → General.</p>
+
+  <h2>Keeping and deleting your data</h2>
+  <ul>
+    <li><b>On your Mac:</b> to remove everything, first deactivate your license (Settings → License → Deactivate This Mac), then delete Switcher, its preferences file <code>~/Library/Preferences/com.csaav.Switcher.plist</code>, and the items named <code>com.csaav.Switcher</code> in Keychain Access.</li>
+    <li><b>Subscription data</b> is kept by Lemon Squeezy and us for as long as needed to provide your subscription and as required for tax and accounting. You can ask us for a copy or to delete it at any time.</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>Switcher isn't directed at children under 13, and we don't knowingly collect their information.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes, we'll update this page and the date at the top.</p>
+
+  <h2>Contact</h2>
+  <p>For questions or requests about your data, reply to your Lemon Squeezy receipt email, or open an issue at <a href="https://github.com/salcocer/switcher/issues">github.com/salcocer/switcher/issues</a>. Issues are public, so please don't post personal details there.</p>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Alejandro Alcocer. Not affiliated with Apple Inc.</span>
+    <span><a href="./">Switcher</a> · <a href="./#pricing">Pricing</a></span>
+  </div>
+</footer>
+</body>
+</html>
