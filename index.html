@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Switcher — Window switcher and snapping for macOS</title>
+<meta name="description" content="Switcher shows every open window on your Mac with live previews, across every Space, and snaps windows into place with a drag or a keystroke. Try it free for 30 days.">
+<meta property="og:title" content="Switcher — Every window. One shortcut away.">
+<meta property="og:description" content="A window switcher and window snapper for macOS. Live previews, every Space, drag-to-snap and keyboard shortcuts. Free for 30 days.">
+<meta property="og:image" content="https://salcocer.github.io/switcher/images/switcher.jpg">
+<meta property="og:url" content="https://salcocer.github.io/switcher/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="images/icon.png">
+<style>
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f5f5f7;
+  --tile: #ffffff;
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --hairline: rgba(0, 0, 0, 0.1);
+  --link: #0066cc;
+  --blue: #0071e3;
+  --blue-hover: #0077ed;
+  --key-bg: linear-gradient(#ffffff, #f2f2f4);
+  --key-border: rgba(0, 0, 0, 0.14);
+  --nav-bg: rgba(255, 255, 255, 0.72);
+  --shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.35), 0 12px 24px -12px rgba(0, 0, 0, 0.2);
+  --dark-bg: #000000;
+  --dark-text: #f5f5f7;
+  --dark-muted: #a1a1a6;
+  --dark-tile: #1d1d1f;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --bg-alt: #101012;
+    --tile: #1d1d1f;
+    --text: #f5f5f7;
+    --muted: #a1a1a6;
+    --hairline: rgba(255, 255, 255, 0.14);
+    --link: #2997ff;
+    --key-bg: linear-gradient(#3a3a3c, #2c2c2e);
+    --key-border: rgba(255, 255, 255, 0.16);
+    --nav-bg: rgba(22, 22, 23, 0.72);
+    --dark-bg: #0b0b0c;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.47;
+  letter-spacing: -0.022em;
+  -webkit-font-smoothing: antialiased;
+}
+img, video { display: block; max-width: 100%; height: auto; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { width: min(980px, 100% - 44px); margin: 0 auto; }
+.wide { width: min(1200px, 100% - 44px); margin: 0 auto; }
+
+/* Navigation */
+.nav {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--nav-bg);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--hairline);
+}
+.nav .wrap { display: flex; align-items: center; height: 52px; gap: 28px; }
+.brand { display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: 600; font-size: 19px; letter-spacing: -0.01em; }
+.brand:hover { text-decoration: none; }
+.brand img { width: 26px; height: 26px; }
+.nav-links { display: flex; gap: 24px; margin-left: auto; font-size: 13px; }
+.nav-links a { color: var(--text); opacity: 0.8; }
+.nav-links a:hover { opacity: 1; text-decoration: none; }
+.pill {
+  display: inline-block; background: var(--blue); color: #fff; border-radius: 980px;
+  padding: 4px 13px; font-size: 13px; font-weight: 400;
+}
+.pill:hover { background: var(--blue-hover); text-decoration: none; }
+@media (max-width: 720px) { .nav-links { display: none; } .nav .pill { margin-left: auto; } }
+
+/* Type */
+.eyebrow { font-size: 21px; font-weight: 600; color: var(--muted); margin: 0 0 6px; letter-spacing: 0.004em; }
+h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.015em; }
+h1 { font-size: clamp(56px, 11vw, 112px); line-height: 1.02; }
+h2 { font-size: clamp(40px, 6.5vw, 72px); line-height: 1.05; }
+h3 { font-size: 28px; line-height: 1.14; letter-spacing: -0.012em; }
+.headline { font-size: clamp(28px, 4.5vw, 48px); font-weight: 600; line-height: 1.1; margin: 10px 0 0; letter-spacing: -0.01em; }
+.lede { font-size: clamp(19px, 2.2vw, 24px); line-height: 1.38; color: var(--muted); font-weight: 500; max-width: 760px; margin: 22px auto 0; letter-spacing: 0.002em; }
+.gradient {
+  background: linear-gradient(95deg, #5e5ce6 0%, #bf5af2 45%, #ff375f 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.center { text-align: center; }
+.muted { color: var(--muted); }
+
+/* Buttons */
+.ctas { display: flex; gap: 28px; justify-content: center; align-items: center; margin-top: 34px; flex-wrap: wrap; }
+.btn {
+  display: inline-block; background: var(--blue); color: #fff; border-radius: 980px;
+  padding: 12px 24px; font-size: 17px; font-weight: 400; letter-spacing: -0.02em;
+}
+.btn:hover { background: var(--blue-hover); text-decoration: none; }
+.more { font-size: 19px; }
+.more::after { content: " ›"; }
+.fine { font-size: 14px; color: var(--muted); margin-top: 18px; letter-spacing: -0.01em; }
+
+/* Sections */
+section { padding: 120px 0; }
+.hero { padding: 88px 0 0; text-align: center; overflow: hidden; }
+.hero-icon { width: 120px; height: 120px; margin: 0 auto 18px; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.18)); }
+/* Full image, at its own proportions, never taller than the window. */
+.hero-shot {
+  margin: 64px auto 0; border-radius: 18px; box-shadow: var(--shadow);
+  width: min(1200px, calc(100% - 44px), calc((100vh - 110px) * 16 / 9));
+  aspect-ratio: 16 / 9; object-fit: cover;
+}
+.alt { background: var(--bg-alt); }
+.dark { background: var(--dark-bg); color: var(--dark-text); }
+.dark .muted, .dark .lede { color: var(--dark-muted); }
+.section-head { text-align: center; margin-bottom: 64px; }
+.section-head .lede { margin-top: 18px; }
+
+/* Bento */
+.bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.tile {
+  background: var(--tile); border-radius: 28px; padding: 36px 34px; overflow: hidden;
+  display: flex; flex-direction: column; min-height: 300px;
+}
+.tile.span2 { grid-column: span 2; }
+.tile h3 { font-size: 26px; }
+.tile p { color: var(--muted); margin: 10px 0 0; font-size: 17px; }
+.tile .big { font-size: 64px; font-weight: 700; line-height: 1; margin-top: auto; padding-top: 24px; letter-spacing: -0.03em; }
+.tile img.shot { margin-top: auto; padding-top: 26px; border-radius: 12px; width: 100%; }
+.tile .icon { width: 44px; height: 44px; margin-bottom: 20px; }
+@media (max-width: 860px) { .bento { grid-template-columns: 1fr; } .tile.span2 { grid-column: auto; } }
+
+/* Keycaps */
+kbd {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 30px; padding: 0 8px;
+  font-family: var(--font); font-size: 15px; font-weight: 500; color: var(--text);
+  background: var(--key-bg); border: 1px solid var(--key-border); border-radius: 7px;
+  box-shadow: 0 1px 0 var(--key-border);
+}
+.dark kbd { color: #f5f5f7; background: linear-gradient(#3a3a3c, #2c2c2e); border-color: rgba(255,255,255,0.16); box-shadow: 0 1px 0 rgba(255,255,255,0.1); }
+.keys { display: inline-flex; gap: 4px; align-items: center; }
+.keyrow { display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: auto; padding-top: 24px; }
+.keyrow span { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 15px; }
+
+/* Video section */
+.film { margin: 0 auto; border-radius: 22px; overflow: hidden; box-shadow: 0 40px 80px -30px rgba(94, 92, 230, 0.55); }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 72px; }
+.steps h3 { font-size: 24px; margin-top: 14px; }
+.steps p { margin: 8px 0 0; color: var(--dark-muted); }
+.step-keys { height: 34px; display: flex; gap: 4px; align-items: center; }
+@media (max-width: 760px) { .steps { grid-template-columns: 1fr; gap: 32px; } }
+
+/* Shortcut list */
+.shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; margin-top: 64px; }
+.shortcut { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--hairline); }
+.dark .shortcut { border-color: rgba(255,255,255,0.14); }
+.shortcut span:first-child { font-size: 17px; }
+@media (max-width: 760px) { .shortcuts { grid-template-columns: 1fr; } }
+
+/* Segmented control (no script needed) */
+.segmented { display: inline-flex; background: rgba(118, 118, 128, 0.12); border-radius: 10px; padding: 3px; margin: 0 auto 44px; }
+.segmented label { padding: 7px 22px; border-radius: 8px; font-size: 15px; font-weight: 500; cursor: pointer; color: var(--text); transition: background .2s; }
+.styles input { position: absolute; opacity: 0; pointer-events: none; }
+#s-thumbs:checked ~ .segmented label[for="s-thumbs"],
+#s-icons:checked ~ .segmented label[for="s-icons"],
+#s-titles:checked ~ .segmented label[for="s-titles"] { background: var(--tile); box-shadow: 0 3px 8px rgba(0,0,0,0.12), 0 1px 1px rgba(0,0,0,0.08); }
+#s-thumbs:focus-visible ~ .segmented label[for="s-thumbs"],
+#s-icons:focus-visible ~ .segmented label[for="s-icons"],
+#s-titles:focus-visible ~ .segmented label[for="s-titles"] { outline: 2px solid var(--blue); }
+.style-shot { display: none; margin: 0 auto; border-radius: 18px; box-shadow: var(--shadow); }
+#s-thumbs:checked ~ .shots .thumbs, #s-icons:checked ~ .shots .icons, #s-titles:checked ~ .shots .titles { display: block; }
+.style-caption { text-align: center; color: var(--muted); margin-top: 26px; font-size: 17px; }
+.style-caption span { display: none; }
+#s-thumbs:checked ~ .style-caption .thumbs, #s-icons:checked ~ .style-caption .icons, #s-titles:checked ~ .style-caption .titles { display: inline; }
+
+/* Snapping */
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.pair figure { margin: 0; }
+.pair img { border-radius: 16px; box-shadow: var(--shadow); }
+.pair figcaption { margin-top: 16px; color: var(--muted); font-size: 15px; text-align: center; }
+@media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+.zones-row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; margin-top: 96px; }
+@media (max-width: 860px) { .zones-row { grid-template-columns: 1fr; } }
+.screen {
+  position: relative; aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden;
+  background: linear-gradient(135deg, #1b1f5e, #4b2a8a 40%, #b0477e 75%, #f08a5d);
+  border: 10px solid #1d1d1f; box-shadow: var(--shadow);
+}
+.zone {
+  position: absolute; display: flex; align-items: center; justify-content: center; text-align: center;
+  color: #fff; font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+  background: rgba(255, 255, 255, 0.14); border: 1.5px dashed rgba(255, 255, 255, 0.55); border-radius: 10px;
+}
+.zone.half-l { left: 4%; top: 22%; bottom: 22%; width: 18%; }
+.zone.half-r { right: 4%; top: 22%; bottom: 22%; width: 18%; }
+.zone.half-t { top: 4%; left: 26%; right: 26%; height: 14%; }
+.zone.half-b { bottom: 4%; left: 26%; right: 26%; height: 14%; }
+.zone.corner { width: 18%; height: 14%; background: rgba(10, 132, 255, 0.45); border-style: solid; border-color: rgba(255,255,255,0.7); }
+.zone.tl { left: 4%; top: 4%; } .zone.tr { right: 4%; top: 4%; } .zone.bl { left: 4%; bottom: 4%; } .zone.br { right: 4%; bottom: 4%; }
+.zone-list { list-style: none; padding: 0; margin: 28px 0 0; }
+.zone-list li { padding: 14px 0; border-bottom: 1px solid var(--hairline); display: flex; justify-content: space-between; gap: 16px; }
+.zone-list li span:last-child { color: var(--muted); text-align: right; }
+
+/* Gallery */
+.gallery { display: flex; gap: 24px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 10px 22px 40px; scrollbar-width: none; }
+.gallery::-webkit-scrollbar { display: none; }
+.gallery figure { flex: 0 0 min(560px, 86vw); margin: 0; scroll-snap-align: center; }
+.gallery img { border-radius: 18px; }
+.gallery figcaption { text-align: center; color: var(--muted); font-size: 15px; margin-top: 12px; }
+.gallery-pad { width: max(0px, (100vw - 1200px) / 2); flex: 0 0 auto; }
+
+/* Privacy */
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.trio .tile { min-height: 0; }
+@media (max-width: 860px) { .trio { grid-template-columns: 1fr; } }
+
+/* Download */
+.download { text-align: center; }
+.download .hero-icon { width: 96px; height: 96px; }
+.install { counter-reset: step; list-style: none; padding: 0; margin: 64px auto 0; max-width: 680px; text-align: left; }
+.install li { counter-increment: step; position: relative; padding: 0 0 26px 56px; }
+.install li::before {
+  content: counter(step); position: absolute; left: 0; top: -2px; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--tile); border: 1px solid var(--hairline); display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 16px;
+}
+.install b { font-weight: 600; }
+.install p { margin: 4px 0 0; color: var(--muted); }
+pre {
+  background: var(--tile); border: 1px solid var(--hairline); border-radius: 14px; padding: 18px 20px; overflow-x: auto;
+  font-family: var(--mono); font-size: 14px; line-height: 1.6; text-align: left; margin: 18px auto 0; max-width: 680px;
+}
+code { font-family: var(--mono); font-size: 0.92em; }
+
+/* Pricing */
+.pricing { padding-top: 120px; }
+.price-card {
+  max-width: 480px; margin: 0 auto; text-align: center; background: var(--tile); border-radius: 28px; padding: 44px 40px 36px;
+  border: 1px solid var(--hairline); box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.25);
+}
+.price-card img { width: 72px; height: 72px; margin: 0 auto 12px; }
+.price-card h3 { font-size: 24px; }
+.price { margin-top: 14px; display: flex; justify-content: center; align-items: baseline; gap: 4px; }
+.price .amount { font-size: 64px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.price .per { font-size: 21px; color: var(--muted); font-weight: 600; }
+.price-card > .muted { margin: 8px 0 0; }
+.included { list-style: none; padding: 0; margin: 28px 0 0; text-align: left; }
+.included li { padding: 11px 0 11px 30px; border-top: 1px solid var(--hairline); position: relative; }
+.included li::before { content: "✓"; position: absolute; left: 4px; color: var(--blue); font-weight: 700; }
+.price-card .ctas { margin-top: 28px; gap: 12px; }
+.btn.secondary { background: transparent; color: var(--link); box-shadow: inset 0 0 0 1px var(--link); }
+.btn.secondary:hover { background: rgba(0, 113, 227, 0.08); }
+.btn.secondary[aria-disabled="true"] { color: var(--muted); box-shadow: inset 0 0 0 1px var(--hairline); pointer-events: none; }
+
+/* FAQ */
+.faq { max-width: 760px; margin: 0 auto; }
+.faq details { border-bottom: 1px solid var(--hairline); padding: 22px 0; }
+.faq summary { cursor: pointer; font-size: 21px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 20px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-weight: 300; font-size: 28px; line-height: 1; color: var(--muted); transition: transform .2s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { color: var(--muted); margin: 12px 0 0; }
+
+footer { background: var(--bg-alt); color: var(--muted); font-size: 12px; padding: 22px 0 36px; }
+footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-top: 1px solid var(--hairline); padding-top: 18px; }
+
+/* Reveal on scroll */
+.js .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s ease, transform .9s cubic-bezier(.2, .7, .2, 1); }
+.js .reveal.shown { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
+</style>
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="images/icon.png" alt="">Switcher</a>
+    <div class="nav-links">
+      <a href="#switcher">Switcher</a>
+      <a href="#styles">Styles</a>
+      <a href="#snapping">Snapping</a>
+      <a href="#settings">Settings</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <a class="pill" href="https://github.com/salcocer/switcher/releases/latest/download/Switcher.zip">Download</a>
+  </div>
+</nav>
+
+<main id="top">
+
+<section class="hero">
+  <div class="wrap">
+    <img class="hero-icon" src="images/icon.png" alt="Switcher app icon" width="120" height="120">
+    <p class="eyebrow">Free 30-day trial</p>
+    <h1>Switcher</h1>
+    <p class="headline">Every window. <span class="gradient">One shortcut away.</span></p>
+    <p class="lede">See every open window on your Mac with live previews, on every Space and even minimized. Then snap windows into place with a drag or a keystroke.</p>
+    <div class="ctas">
+      <a class="btn" href="https://github.com/salcocer/switcher/releases/latest/download/Switcher.zip">Download free trial</a>
+      <a class="more" href="#pricing">See pricing</a>
+    </div>
+    <p class="fine">macOS 14 Sonoma or later · Apple silicon and Intel · 30 days free, then $2.95/month</p>
+  </div>
+  <img class="hero-shot reveal" src="images/switcher.jpg" width="1920" height="1080"
+       alt="The Switcher panel over a desktop, showing live previews of Safari, Xcode, Terminal, Notes, Music, Calendar and Messages windows">
+</section>
+
+<section class="alt" id="highlights">
+  <div class="wide">
+    <div class="section-head reveal">
+      <h2>Get the highlights.</h2>
+    </div>
+    <div class="bento">
+      <div class="tile span2 reveal">
+        <h3>All your windows. Not just your apps.</h3>
+        <p>Three Safari windows are three choices, not one. Switcher lists every window in the order you last used it, so the one you want is usually a single Tab away.</p>
+        <img class="shot" src="images/switcher-panel.jpg" alt="The switcher panel with seven window previews">
+      </div>
+      <div class="tile reveal">
+        <svg class="icon" viewBox="0 0 44 44" aria-hidden="true"><rect x="3" y="9" width="26" height="20" rx="4" fill="#5e5ce6"/><rect x="15" y="16" width="26" height="20" rx="4" fill="#bf5af2" opacity=".9"/></svg>
+        <h3>Every Space. Even full screen.</h3>
+        <p>Windows on other desktops and apps in full screen are right there with the rest. Pick one and you're taken straight to it.</p>
+        <div class="big gradient">All</div>
+      </div>
+      <div class="tile reveal">
+        <svg class="icon" viewBox="0 0 44 44" aria-hidden="true"><rect x="4" y="8" width="36" height="28" rx="5" fill="#0a84ff"/><rect x="9" y="15" width="12" height="16" rx="2" fill="#fff" opacity=".9"/><rect x="24" y="15" width="11" height="7" rx="2" fill="#fff" opacity=".6"/><rect x="24" y="24" width="11" height="7" rx="2" fill="#fff" opacity=".6"/></svg>
+        <h3>Live previews.</h3>
+        <p>Thumbnails show what's actually in each window, so similar windows never look alike.</p>
+      </div>
+      <div class="tile reveal">
+        <h3>Do more without leaving.</h3>
+        <p>While the switcher is open, one key acts on the selected window.</p>
+        <div class="keyrow">
+          <span><kbd>W</kbd>Close</span>
+          <span><kbd>M</kbd>Minimize</span>
+          <span><kbd>F</kbd>Full screen</span>
+          <span><kbd>H</kbd>Hide</span>
+          <span><kbd>Q</kbd>Quit</span>
+        </div>
+      </div>
+      <div class="tile reveal">
+        <h3>Fill, then go back.</h3>
+        <p>One shortcut makes a window fill the screen. Press it again and it returns to exactly where it was.</p>
+        <div class="keyrow"><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>↩</kbd></span></div>
+      </div>
+      <div class="tile span2 reveal">
+        <h3>Snap to any edge.</h3>
+        <p>Drag a window to the side of the screen for half, to a corner for a quarter, or arrange everything from the keyboard.</p>
+        <img class="shot" src="images/snap-layout.jpg" alt="Three windows snapped into a left half and two right quarters">
+      </div>
+      <div class="tile reveal">
+        <h3>Native. Tiny. Fast.</h3>
+        <p>Written in Swift with AppKit. No Electron, no web views. It opens in milliseconds and stays out of the way in your menu bar.</p>
+        <div class="big">1&nbsp;MB <span style="font-size:24px;font-weight:600">download</span></div>
+      </div>
+      <div class="tile reveal">
+        <h3>Try it free.</h3>
+        <p>Every feature for 30 days, no credit card needed. Then $2.95 a month.</p>
+        <div class="big gradient">30 days</div>
+      </div>
+      <div class="tile span2 reveal">
+        <h3>Private by design.</h3>
+        <p>No analytics and no tracking. Nothing about your windows ever leaves your Mac; the only thing Switcher sends is a daily license check.</p>
+        <div class="big">0 <span style="font-size:24px;font-weight:600">trackers</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="dark" id="switcher">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">The switcher</p>
+      <h2>Hold. Tab. <span class="gradient">There.</span></h2>
+      <p class="lede">Hold <kbd>⌥</kbd> and press <kbd>Tab</kbd>. Every window appears, newest first. Keep tapping to move along, then let go.</p>
+    </div>
+  </div>
+  <div class="wide reveal">
+    <video class="film" src="images/switcher-cycle.mp4" poster="images/switcher-cycle-poster.jpg" autoplay muted loop playsinline
+           aria-label="The selection moving from window to window in the switcher"></video>
+  </div>
+  <div class="wrap">
+    <div class="steps">
+      <div class="reveal">
+        <div class="step-keys"><kbd>⌥</kbd><kbd>Tab</kbd></div>
+        <h3>Hold and tap.</h3>
+        <p>Each Tab moves to the next window. Add Shift to go back, or use the arrow keys and the mouse.</p>
+      </div>
+      <div class="reveal">
+        <div class="step-keys"><kbd>⌥</kbd></div>
+        <h3>Let go to switch.</h3>
+        <p>The window comes forward, even from another Space, a minimized state or a hidden app.</p>
+      </div>
+      <div class="reveal">
+        <div class="step-keys"><kbd>⌥</kbd><kbd>`</kbd></div>
+        <h3>Just this app.</h3>
+        <p>Cycle through the windows of the app you're using, without the rest.</p>
+      </div>
+    </div>
+    <div class="shortcuts reveal">
+      <div class="shortcut"><span>Next / previous window</span><span class="keys"><kbd>Tab</kbd><kbd>⇧</kbd><kbd>Tab</kbd></span></div>
+      <div class="shortcut"><span>Move the selection</span><span class="keys"><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></span></div>
+      <div class="shortcut"><span>Switch now</span><span class="keys"><kbd>↩</kbd></span></div>
+      <div class="shortcut"><span>Cancel</span><span class="keys"><kbd>esc</kbd></span></div>
+      <div class="shortcut"><span>Close window</span><span class="keys"><kbd>W</kbd></span></div>
+      <div class="shortcut"><span>Minimize or restore</span><span class="keys"><kbd>M</kbd></span></div>
+      <div class="shortcut"><span>Toggle full screen</span><span class="keys"><kbd>F</kbd></span></div>
+      <div class="shortcut"><span>Hide or quit the app</span><span class="keys"><kbd>H</kbd><kbd>Q</kbd></span></div>
+    </div>
+    <p class="center muted reveal" style="margin-top:40px">Prefer <kbd>⌘</kbd><kbd>Tab</kbd> or <kbd>⌃</kbd><kbd>Tab</kbd>? Pick the key you hold in Settings.</p>
+  </div>
+</section>
+
+<section id="styles">
+  <div class="wide">
+    <div class="section-head reveal">
+      <h2>Your windows, your way.</h2>
+      <p class="lede">Big previews, app icons, or a compact list. Three sizes each.</p>
+    </div>
+    <div class="styles center reveal">
+      <input type="radio" name="style" id="s-thumbs" checked>
+      <input type="radio" name="style" id="s-icons">
+      <input type="radio" name="style" id="s-titles">
+      <div class="segmented" role="radiogroup" aria-label="Switcher style">
+        <label for="s-thumbs">Thumbnails</label>
+        <label for="s-icons">App icons</label>
+        <label for="s-titles">Titles</label>
+      </div>
+      <div class="shots">
+        <img class="style-shot thumbs" src="images/switcher-panel.jpg" alt="Thumbnails style">
+        <img class="style-shot icons" src="images/switcher-icons-panel.jpg" alt="App icons style">
+        <img class="style-shot titles" src="images/switcher-titles-panel.jpg" alt="Titles style" style="max-width:720px">
+      </div>
+      <p class="style-caption">
+        <span class="thumbs">Live previews of every window, with the app and window title above each.</span>
+        <span class="icons">Large app icons, like the classic app switcher, but one per window.</span>
+        <span class="titles">A tidy list for when you have dozens of windows open.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="snapping">
+  <div class="wide">
+    <div class="section-head reveal">
+      <p class="eyebrow">Window snapping</p>
+      <h2>Drag. Drop. <span class="gradient">Done.</span></h2>
+      <p class="lede">Drag a window to an edge of the screen and a preview shows where it will land. Let go and it snaps into place. Drag it away and it gets its old size back.</p>
+    </div>
+    <div class="pair reveal">
+      <figure>
+        <img src="images/snap-drag.jpg" alt="A window dragged to the left edge with a preview of the left half">
+        <figcaption>Drag to the left edge: a preview of the left half.</figcaption>
+      </figure>
+      <figure>
+        <img src="images/snap-layout.jpg" alt="Windows arranged in a left half and two quarters">
+        <figcaption>A half and two quarters, in three drags.</figcaption>
+      </figure>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="zones-row">
+      <div class="screen reveal" role="img" aria-label="Diagram of the snap zones: edges snap to halves, corners to quarters">
+        <div class="zone half-l">Left half</div>
+        <div class="zone half-r">Right half</div>
+        <div class="zone half-t">Top half</div>
+        <div class="zone half-b">Bottom half</div>
+        <div class="zone corner tl">¼</div>
+        <div class="zone corner tr">¼</div>
+        <div class="zone corner bl">¼</div>
+        <div class="zone corner br">¼</div>
+      </div>
+      <div class="reveal">
+        <h3>Or never touch the mouse.</h3>
+        <ul class="zone-list">
+          <li><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>←</kbd><kbd>→</kbd></span><span>Left or right half. Again for ⅔, then ⅓.</span></li>
+          <li><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>↑</kbd><kbd>↓</kbd></span><span>Top or bottom half.</span></li>
+          <li><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>U</kbd><kbd>I</kbd><kbd>J</kbd><kbd>K</kbd></span><span>The four quarters.</span></li>
+          <li><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>↩</kbd></span><span>Fill the screen, and back.</span></li>
+          <li><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>C</kbd></span><span>Center.</span></li>
+          <li><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⌫</kbd></span><span>Back to where it was.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="settings">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <h2>Settings that feel at home.</h2>
+      <p class="lede">Laid out like System Settings, with every option where you'd expect it. Choose the key you hold, the style and size, which windows to show, whether each Space stays separate, apps to leave out, and how snapping behaves.</p>
+    </div>
+  </div>
+  <div class="gallery reveal" tabindex="0" aria-label="Settings screenshots">
+    <div class="gallery-pad"></div>
+    <figure><img src="images/settings-switcher.jpg" alt="Switcher settings: hold key, shortcuts and timing"><figcaption>Switcher</figcaption></figure>
+    <figure><img src="images/settings-appearance.jpg" alt="Appearance settings with style cards"><figcaption>Appearance</figcaption></figure>
+    <figure><img src="images/settings-snapping.jpg" alt="Snapping settings with keyboard shortcuts"><figcaption>Snapping</figcaption></figure>
+    <figure><img src="images/settings-windows.jpg" alt="Windows settings"><figcaption>Windows</figcaption></figure>
+    <div class="gallery-pad"></div>
+  </div>
+</section>
+
+<section class="alt" id="privacy">
+  <div class="wide">
+    <div class="section-head reveal">
+      <h2>Two permissions. Nothing else.</h2>
+      <p class="lede">macOS asks you to allow these the first time Switcher opens.</p>
+    </div>
+    <div class="trio">
+      <div class="tile reveal">
+        <h3>Accessibility</h3>
+        <p>Required. Lets Switcher see your windows, catch its keyboard shortcuts and move windows when you snap them.</p>
+      </div>
+      <div class="tile reveal">
+        <h3>Screen Recording</h3>
+        <p>For the live previews only. Without it, Switcher shows app icons instead. Nothing is ever saved or sent.</p>
+      </div>
+      <div class="tile reveal">
+        <h3>No tracking</h3>
+        <p>No analytics, no ads. Switcher only checks your license with our payment provider, about once a day, and keeps working offline.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Pricing</p>
+      <h2>One plan. Everything&nbsp;included.</h2>
+      <p class="lede">Try every feature free for 30 days. No credit card needed.</p>
+    </div>
+    <div class="price-card reveal">
+      <img src="images/icon.png" alt="" width="72" height="72">
+      <h3>Switcher</h3>
+      <div class="price"><span class="amount">$2.95</span><span class="per">/month</span></div>
+      <p class="muted">after your 30-day free trial</p>
+      <ul class="included">
+        <li>Window switcher with live previews</li>
+        <li>Every Space, full-screen, minimized and hidden windows</li>
+        <li>Snapping by dragging and from the keyboard</li>
+        <li>Keep each Space separate</li>
+        <li>All updates while you're subscribed</li>
+        <li>Use it on up to 3 of your Macs</li>
+      </ul>
+      <div class="ctas">
+        <a class="btn" href="https://github.com/salcocer/switcher/releases/latest/download/Switcher.zip">Start free trial</a>
+        <a class="btn secondary" id="subscribe" href="#pricing">Subscribe</a>
+      </div>
+      <p class="fine" id="subscribe-note">Cancel anytime. Prices in US dollars; sales tax or VAT may be added at checkout.</p>
+    </div>
+  </div>
+</section>
+
+<section class="download" id="download">
+  <div class="wrap">
+    <img class="hero-icon reveal" src="images/icon.png" alt="" width="96" height="96">
+    <h2 class="reveal">Get Switcher.</h2>
+    <p class="lede reveal">Free for 30 days. For macOS 14 Sonoma and later, on Apple silicon and Intel.</p>
+    <div class="ctas reveal">
+      <a class="btn" href="https://github.com/salcocer/switcher/releases/latest/download/Switcher.zip">Download free trial</a>
+      <a class="more" href="https://github.com/salcocer/switcher/releases">All releases</a>
+    </div>
+    <ol class="install reveal">
+      <li><b>Unzip and move Switcher to Applications.</b></li>
+      <li><b>Open it.</b>
+        <p>Switcher isn't notarized by Apple yet, so macOS stops it the first time. Go to System Settings → Privacy &amp; Security, scroll down and click <b>Open Anyway</b>.</p></li>
+      <li><b>Allow Accessibility and Screen Recording</b> when asked.
+        <p>Relaunch Switcher after allowing Screen Recording so previews appear.</p></li>
+      <li><b>Hold <kbd>⌥</kbd> and press <kbd>Tab</kbd>.</b>
+        <p>Settings live behind the menu bar icon. Switcher starts at login; you can turn that off in Settings → General.</p></li>
+      <li><b>Subscribe when you're ready.</b>
+        <p>Your license key arrives by email. Paste it in Settings → License and click Activate.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="alt" id="faq">
+  <div class="wrap">
+    <div class="section-head reveal"><h2>Questions? Answers.</h2></div>
+    <div class="faq">
+      <details class="reveal"><summary>How much does Switcher cost?</summary>
+        <p>Every feature is free for 30 days, no credit card needed. After that it's $2.95 a month, and you can cancel anytime.</p></details>
+      <details class="reveal"><summary>What happens when my trial ends?</summary>
+        <p>Switching and snapping pause and Switcher asks you to subscribe. Your settings are kept, and everything works again the moment you activate your license.</p></details>
+      <details class="reveal"><summary>How do I activate my subscription?</summary>
+        <p>After checkout you get a license key by email. Click Switcher's menu bar icon, open Settings → License, paste the key and click Activate. One subscription covers up to 3 of your Macs.</p></details>
+      <details class="reveal"><summary>How do I cancel?</summary>
+        <p>Use the link in your receipt email, or Settings → License → Manage Subscription. Switcher keeps working until the end of the period you've paid for.</p></details>
+      <details class="reveal"><summary>Why does macOS say it can't verify the developer?</summary>
+        <p>The app isn't notarized by Apple yet. Open it once from System Settings → Privacy &amp; Security → Open Anyway. You only need to do this once.</p></details>
+      <details class="reveal"><summary>Dragging to an edge also triggers macOS's own tiling.</summary>
+        <p>Recent versions of macOS tile windows dragged to the screen edges too. In System Settings → Desktop &amp; Dock, turn off “Drag windows to screen edges to tile” and “Drag windows to menu bar to fill screen”. Switcher's Settings warns you while they're on.</p></details>
+      <details class="reveal"><summary>Can it replace ⌘Tab?</summary>
+        <p>Yes. Set the hold key to ⌘ in Settings → Switcher. The system's own ⌘Tab switcher is turned off while Switcher runs and comes back when you quit it.</p></details>
+      <details class="reveal"><summary>Does it show windows on other Spaces?</summary>
+        <p>Yes, along with full-screen apps, minimized windows and windows of hidden apps. Each can be turned off in Settings → Windows.</p></details>
+      <details class="reveal"><summary>Can each Space work on its own?</summary>
+        <p>Yes. Turn on “Keep each Space separate” in Settings → Windows. The switcher then shows only the windows on the Space you're in, and opening an app whose windows are all on other Spaces gives it a new window right where you are, instead of taking you away.</p></details>
+      <details class="reveal"><summary>How do I leave an app out?</summary>
+        <p>Add it in Settings → Excluded Apps and its windows won't appear in the switcher.</p></details>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Alejandro Alcocer. Not affiliated with Apple Inc. Mac and macOS are trademarks of Apple Inc.</span>
+    <span><a href="#pricing">Pricing</a> · <a href="https://github.com/salcocer/switcher/issues">Support</a></span>
+  </div>
+</footer>
+
+<script>
+  const io = new IntersectionObserver((entries) => {
+    for (const entry of entries) if (entry.isIntersecting) { entry.target.classList.add("shown"); io.unobserve(entry.target); }
+  }, { rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+  // The checkout link lives in license.json, which the app reads too.
+  fetch("license.json", { cache: "no-store" }).then((r) => r.json()).then((config) => {
+    const button = document.getElementById("subscribe");
+    if (config.checkoutURL) {
+      button.href = config.checkoutURL;
+    } else {
+      button.textContent = "Subscriptions open soon";
+      button.setAttribute("aria-disabled", "true");
+    }
+  }).catch(() => {});
+</script>
+</body>
+</html>
